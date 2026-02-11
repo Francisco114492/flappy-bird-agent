@@ -166,7 +166,8 @@ def main(args: argparse.Namespace) -> None:
     np.random.seed(args.s)
 
     # Define the bounds for the optimization
-    bounds = np.asarray([[-1.0, 1.0]] * nn.network_size(NN_ARCHITECTURE))
+    # bounds = np.asarray([[-1.0, 1.0]] * nn.network_size(NN_ARCHITECTURE))
+    bounds = np.asarray([[-1.0, 1.0]] * 3)
 
     # Generate the initial population
     # population = [nn.NN(NN_ARCHITECTURE).ravel() for i in range(args.n)]
