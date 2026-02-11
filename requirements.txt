@@ -1,0 +1,4 @@
+pdoc>=16.0.0
+numpy>=1.26.4
+websockets>=16.0
+pyBlindOpt>=0.2.5
