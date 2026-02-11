@@ -675,10 +675,10 @@ def compute_activations(A: np.ndarray, activation: str) -> list:
     """
     if activation == "relu" or activation == "swish":
         # Returns 1 where A > 0, else 0
-        return list((A > 0).astype(int))
+        return (A > 0).astype(int).tolist()
     elif activation == "sigmoid":
         # Returns 1 where A >= 0.5, else 0
-        return list((A >= 0.5).astype(int))
+        return (A >= 0.5).astype(int).tolist()
     else:
         raise Exception("Non-supported activation function")
 
