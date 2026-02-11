@@ -12,6 +12,7 @@ import asyncio
 import json
 import logging
 import uuid
+import random
 
 import numpy as np
 import websockets
@@ -40,7 +41,7 @@ def load_data(path: str) -> tuple:
         return data["model"], np.asarray(data["parameters"])
 
 
-async def player_game(url: str, model: nn.NN) -> float:
+async def play_game(url: str, model: nn.NN) -> float:
     """
     Player main loop.
 
@@ -55,7 +56,6 @@ async def player_game(url: str, model: nn.NN) -> float:
         float: highscore
     """
     identification = str(uuid.uuid4())[:8]
-    networkLayer = model.layers()
     final_score = 0.0
     async with websockets.connect(f"{url}/player") as websocket:
         await websocket.send(json.dumps({"cmd": "join", "id": identification}))
@@ -63,30 +63,10 @@ async def player_game(url: str, model: nn.NN) -> float:
         while not done:
             data = json.loads(await websocket.recv())
             if data["evt"] == "world_state":
-                player = data["players"][identification]
-                # find closest pipe
-                closest_pipe = data["pipes"][0]
-                for pipe in data["pipes"]:
-                    if pipe["px"] + 60 > player["px"]:
-                        closest_pipe = pipe
-                        break
-
-                c = closest_pipe["py_t"] + closest_pipe["py_b"] / 2
-                X = np.array([player["py"], player["v"], c, closest_pipe["px"]])
-                p, activations = model.predict_activations(X)
-                if p[0] >= 0.5:
+                #player = data["players"][identification]
+                pr = random.random()
+                if pr > 0.75:
                     await websocket.send(json.dumps({"cmd": "click"}))
-                await websocket.send(
-                    json.dumps(
-                        {
-                            "cmd": "neural_network",
-                            "neural_network": {
-                                "networkLayer": networkLayer,
-                                "activations": activations,
-                            },
-                        }
-                    )
-                )
             elif data["evt"] == "done":
                 done = True
                 final_score = data["highscore"]
@@ -104,7 +84,7 @@ def main(args: argparse.Namespace) -> None:
     model = nn.NN(model_description)
     model.update(parameters)
 
-    highscore = asyncio.run(player_game(args.u, model))
+    highscore = asyncio.run(play_game(args.u, model))
     logger.info(f"Highscore: {highscore}")
 
 
