@@ -169,7 +169,7 @@ def main(args: argparse.Namespace) -> None:
     bounds = np.asarray([[-1.0, 1.0]] * nn.network_size(NN_ARCHITECTURE))
 
     # Generate the initial population
-    population = [nn.NN(NN_ARCHITECTURE).ravel() for i in range(args.n)]
+    # population = [nn.NN(NN_ARCHITECTURE).ravel() for i in range(args.n)]
 
     # Apply Opposition Learning to the inital population
     # population = init.opposition_based(objective, bounds, population=population, n_jobs=args.n)

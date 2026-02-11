@@ -11,8 +11,8 @@ import argparse
 import asyncio
 import json
 import logging
-import uuid
 import random
+import uuid
 
 import numpy as np
 import websockets
@@ -41,7 +41,7 @@ def load_data(path: str) -> tuple:
         return data["model"], np.asarray(data["parameters"])
 
 
-async def play_game(url: str, model: nn.NN) -> float:
+async def play_game(url: str, model: nn.NN | None) -> float:
     """
     Player main loop.
 
@@ -63,7 +63,7 @@ async def play_game(url: str, model: nn.NN) -> float:
         while not done:
             data = json.loads(await websocket.recv())
             if data["evt"] == "world_state":
-                #player = data["players"][identification]
+                # player = data["players"][identification]
                 pr = random.random()
                 if pr > 0.75:
                     await websocket.send(json.dumps({"cmd": "click"}))
@@ -80,9 +80,10 @@ def main(args: argparse.Namespace) -> None:
     Args:
         args (argparse.Namespace): the program arguments
     """
-    model_description, parameters = load_data(args.l)
-    model = nn.NN(model_description)
-    model.update(parameters)
+    # model_description, parameters = load_data(args.l)
+    # model = nn.NN(model_description)
+    # model.update(parameters)
+    model = None
 
     highscore = asyncio.run(play_game(args.u, model))
     logger.info(f"Highscore: {highscore}")
