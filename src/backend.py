@@ -105,7 +105,7 @@ class Pipe:
     Class that represents a pipe in the game.
     """
 
-    def __init__(self, px: int, py: int) -> None:
+    def __init__(self, px: int, py: int, gap: int = 100) -> None:
         """
         Constructor for a Pipe object.
 
@@ -115,7 +115,7 @@ class Pipe:
         """
         self.HEIGHT = 355
         self.WIDTH = 60
-        self.GAP = 100
+        self.GAP = gap
         self.HEAD = 30
         self.px = px
         self.py_top = py
@@ -169,7 +169,7 @@ class World:
     Class that contains all the elements in the world (birds and pipes).
     """
 
-    def __init__(self, with_pipes: bool = False) -> None:
+    def __init__(self, difficulty: int = 0) -> None:
         """
         Constructor for a World object.
 
@@ -180,7 +180,8 @@ class World:
         self.WIDTH = 580
         self.players = {}
         self.pipes = []
-        self.with_pipes = with_pipes
+        self.difficulty = difficulty
+        self.with_pipes = difficulty > 0
         self.highscore = 0
         self.generation = 0
         # OPTIONAL
@@ -245,20 +246,27 @@ class World:
         [p.update(dt) for p in self.players.values()]
 
         if self.with_pipes:
-            # generate new pipe
             if len(self.pipes) < 3:
                 if self.pipes:
                     previous_pipe = self.pipes[-1]
+
+                    # Difficulty Scaling
+                    gap = random.randint(75, 100) if self.difficulty >= 3 else 100
+                    y_range = (
+                        100 if self.difficulty >= 2 else int(previous_pipe.GAP / 2)
+                    )
+                    x_dist = random.randint(220, 350) if self.difficulty >= 2 else 290
+
                     lower_limit = max(
-                        previous_pipe.HEAD,
-                        previous_pipe.py_top - int(previous_pipe.GAP / 2),
+                        previous_pipe.HEAD, previous_pipe.py_top - y_range
                     )
                     upper_limit = min(
-                        self.HEIGHT - previous_pipe.HEAD - previous_pipe.GAP,
-                        previous_pipe.py_top + int(previous_pipe.GAP / 2),
+                        self.HEIGHT - previous_pipe.HEAD - gap,
+                        previous_pipe.py_top + y_range,
                     )
+
                     py = random.randint(lower_limit, upper_limit)
-                    self.pipes.append(Pipe(previous_pipe.px + 290, py))
+                    self.pipes.append(Pipe(previous_pipe.px + x_dist, py, gap))
                 else:
                     self.pipes.append(Pipe(self.WIDTH, 150))
 
@@ -346,7 +354,7 @@ class GameServer:
     Class that manages the game and the incoming messages.
     """
 
-    def __init__(self, with_pipes=False):
+    def __init__(self, difficulty: int = 0):
         """
         Constructor for a GameServer object.
 
@@ -354,7 +362,7 @@ class GameServer:
             with_pipes (bool): with or without pipes
         """
         self.viewers = set()
-        self.world = World(with_pipes=with_pipes)
+        self.world = World(difficulty=difficulty)
 
     async def incomming_handler(self, websocket) -> None:
         """
@@ -483,7 +491,7 @@ async def main(args: argparse.Namespace) -> None:
         args (argparse.Namespace): the program arguments
     """
     random.seed(args.s)
-    game = GameServer(with_pipes=args.pipes)
+    game = GameServer(difficulty=args.d)
     # websocket_server = websockets.serve(game.incomming_handler, "localhost", args.p)
     # game_loop_task = asyncio.create_task(game.mainloop(args))
     # await asyncio.gather(websocket_server, game_loop_task)
@@ -501,7 +509,13 @@ if __name__ == "__main__":
     parser.add_argument("-f", type=int, default=30, help="server fps")
     parser.add_argument("-n", type=int, default=1, help="concurrent number of players")
     parser.add_argument("-l", type=int, default=-1, help="limit the highscore")
-    parser.add_argument("--pipes", action="store_true", help="add pipes to the world")
+    parser.add_argument(
+        "-d",
+        type=int,
+        default=0,
+        choices=[0, 1, 2, 3],
+        help="difficulty level (0: none, 1: normal, 2: hard, 3: extreme)",
+    )
     args = parser.parse_args()
 
     asyncio.run(main(args))
