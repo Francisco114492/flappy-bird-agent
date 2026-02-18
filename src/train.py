@@ -12,6 +12,7 @@ import asyncio
 import enum
 import json
 import logging
+import os
 import random
 import statistics
 import uuid
@@ -151,6 +152,7 @@ def store_data(model: list, parameters: np.ndarray, path: str) -> None:
         parameters (np.ndarray): the model parameters
         path (str): the location of the file
     """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump({"model": model, "parameters": parameters.tolist()}, f)
 
@@ -167,7 +169,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Define the bounds for the optimization
     # bounds = np.asarray([[-1.0, 1.0]] * nn.network_size(NN_ARCHITECTURE))
-    bounds = np.asarray([[-1.0, 1.0]] * 3)
+    bounds = np.asarray([[-1.0, 1.0]] * 1)
 
     # Generate the initial population
     # population = [nn.NN(NN_ARCHITECTURE).ravel() for i in range(args.n)]

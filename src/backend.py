@@ -94,7 +94,7 @@ class Player:
             self.v = -25
             self.a = 0
         else:
-            self.a = 10
+            self.a = 1
 
         self.v = self.v + self.a * dt
         self.py = self.py + self.v * dt

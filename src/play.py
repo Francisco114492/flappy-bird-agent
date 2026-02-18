@@ -62,11 +62,24 @@ async def play_game(url: str, model: nn.NN | None) -> float:
         done = False
         while not done:
             data = json.loads(await websocket.recv())
+            print(data )
             if data["evt"] == "world_state":
-                # player = data["players"][identification]
-                pr = random.random()
-                if pr > 0.75:
-                    await websocket.send(json.dumps({"cmd": "click"}))
+                player = data["players"][identification]
+                bird_y = player["py"]
+
+                # encontrar próximo tubo
+                next_pipe = None
+                for pipe in data["pipes"]:
+                    if pipe["px"] > player["px"]:
+                        next_pipe = pipe
+                        break
+
+                if next_pipe is not None:
+                    gap_center = (next_pipe["py_t"] + next_pipe["py_b"]) / 2
+
+                    # regra simples
+                    if bird_y > gap_center:
+                        await websocket.send(json.dumps({"cmd": "click"}))
             elif data["evt"] == "done":
                 done = True
                 final_score = data["highscore"]
@@ -98,7 +111,7 @@ if __name__ == "__main__":
         "-u", type=str, help="server url", default="ws://localhost:8765"
     )
     parser.add_argument(
-        "-l", type=str, help="load a player neural network", required=True
+        "-l", type=str, help="load a player neural network", required=False
     )
     args = parser.parse_args()
 
